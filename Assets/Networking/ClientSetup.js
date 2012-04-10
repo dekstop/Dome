@@ -2,7 +2,7 @@
 
 var kinematicObjectGroup : GameObject;
 
-function SetupClient() {
+function Setup() {
 	if (!Network.isClient) {
 		Debug.Log("Error: Trying to configure a non-client as client");
 		return;
@@ -18,7 +18,7 @@ function SetupClient() {
 	}
 }
 
-function TeardownClient() {
+function Teardown() {
 	if (!Network.isClient) {
 		Debug.Log("Error: Trying to tear down a non-client as client");
 		return;

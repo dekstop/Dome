@@ -3,6 +3,7 @@
 var connectToIP : String = "127.0.0.1";
 var connectPort : int = 25001;
 
+var netController : NetworkController;
 
 function OnGUI() {
 
@@ -36,55 +37,8 @@ function OnGUI() {
 		}
 
 		if (GUILayout.Button ("Disconnect")) {
+			netController.BeforeNetworkDisconnect();
 			Network.Disconnect(200);
 		}
 	}
 }
-
-// Client functions
-function OnConnectedToServer() {
-	Debug.Log("This CLIENT has connected to a server");	
-	FindObjectOfType(ClientSetup).SetupClient();
-}
-
-function OnDisconnectedFromServer(info : NetworkDisconnection) {
-	Debug.Log("This SERVER OR CLIENT has disconnected from a server");
-	FindObjectOfType(ClientSetup).TeardownClient();
-}
-
-function OnFailedToConnect(error: NetworkConnectionError) {
-	Debug.Log("Could not connect to server: "+ error);
-}
-
-// Server functions
-function OnPlayerConnected(player: NetworkPlayer) {
-	Debug.Log("Player connected from: " + player.ipAddress +":" + player.port);
-}
-
-function OnServerInitialized() {
-	Debug.Log("Server initialized and ready");
-}
-
-function OnPlayerDisconnected(player: NetworkPlayer) {
-	Debug.Log("Player disconnected from: " + player.ipAddress+":" + player.port);
-}
-
-// OTHERS:
-function OnFailedToConnectToMasterServer(info: NetworkConnectionError) {
-	Debug.Log("Could not connect to master server: "+ info);
-}
-
-function OnNetworkInstantiate (info : NetworkMessageInfo) {
-	Debug.Log("New object instantiated by " + info.sender);
-}
-
-function OnSerializeNetworkView(stream : BitStream, info : NetworkMessageInfo) {
-}
-
-/*  
- @RPC
- function MyRPCKillMessage(){
-	//Looks like I have been killed!
-	//Someone send an RPC resulting in this function call
- }
-*/

@@ -1,10 +1,15 @@
 #pragma strict
 
-// We're only regarding the first point of contact.
+private var playerController : PlayerController;
 
-var playerController : PlayerController;
+function Start() {
+	playerController = GameObject.Find("Player/Controller").GetComponent(PlayerController);
+}
 
 function OnCollisionEnter(collisionInfo : Collision) {
+	if (IsNetworked() && !networkView.isMine) {
+		return;
+	}
 	if (collisionInfo.gameObject.tag=="Surface") {
 		playerController.SetSurfaceNormal(AverageNormal(collisionInfo.contacts)); 
 	} else if (collisionInfo.gameObject.tag=="Player") {
@@ -13,6 +18,9 @@ function OnCollisionEnter(collisionInfo : Collision) {
 }
 
 function OnCollisionStay(collisionInfo : Collision) {
+	if (IsNetworked() && !networkView.isMine) {
+		return;
+	}
 	if (collisionInfo.gameObject.tag=="Surface") {
 		playerController.SetSurfaceNormal(AverageNormal(collisionInfo.contacts));
 	}
@@ -24,7 +32,12 @@ function OnCollisionStay(collisionInfo : Collision) {
 //	}
 //}
 
-function AverageNormal(contacts : ContactPoint[]) {
+// Running in local or networked mode?
+private function IsNetworked() {
+	return Network.isServer || Network.isClient;
+}
+
+private function AverageNormal(contacts : ContactPoint[]) {
 	var sum : Vector3 = Vector3.zero;
 	var num : int = 0;
 	for (var contact : ContactPoint in contacts) {

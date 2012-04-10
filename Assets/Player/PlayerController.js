@@ -10,21 +10,20 @@ var lateralForce : float = 15.0;
 var flowSpeedupMultiplier : float = 1.1; // Slow steady speedup until player collision
 var flowSpeedup : float = 1.0;
 private var maxFlowSpeedup : float = 2;
-var keySpeedupMultiplier : float = 3.0; // Shift key speedup
+var keySpeedupMultiplier : float = 2.0; // Shift key speedup
 
 var cameraDamping : float = 0.1; // [0..1]
 
 var minCameraDistance : float = 10.0;
-var speedCameraDistance : float = 0.05; // Increase in distance over speed
+var speedCameraDistance : float = 0.1; // Increase in distance over speed
 var minFieldOfView = 45; // Increase in FOV over speed
 var maxFieldOfView = 90;
 
 var playerObject : GameObject;
 var cameraObject : Camera;
-var companionObject : GameObject;
 
 var spawnCenter : Vector3 = new Vector3(0, 85, 0);
-var spawnRadius : float = 85;
+var spawnRadius : float = 84;
 
 private var surfaceNormal : Vector3 = Vector3.up;
 
@@ -37,6 +36,9 @@ function Start() {
 }
 
 function Update () {
+	if (playerObject==null) {
+		return; // Most likely: atm switching between network/local mode.
+	}
 	var velocity : Vector3 = playerObject.GetComponent(Rigidbody).velocity;
 	
 	// Handle application keys
@@ -62,10 +64,6 @@ function Update () {
 	}
 	playerObject.GetComponent(Rigidbody).AddForce(force);
 	
-	// Update companion object
-	companionObject.transform.position = playerObject.transform.position;
-	companionObject.transform.up = surfaceNormal;
-
 	// Update camera
 	var targetFieldOfView : float = Mathf.Min(maxFieldOfView, 
 		minFieldOfView + velocity.magnitude / 100 * (maxFieldOfView - minFieldOfView));
@@ -93,7 +91,7 @@ function Update () {
 			cameraObject.transform.forward, 
 			playerObject.transform.position,// + surfaceNormal * 5, 
 			Time.deltaTime * 100); // fixed damping
-	var cameraUp : Vector3 = 
+	var cameraUp : Vector3 =
 		Vector3.Lerp(
 			cameraObject.transform.up, 
 			surfaceNormal, 
@@ -108,6 +106,14 @@ function SetSurfaceNormal(surfaceNormal : Vector3) {
 	this.surfaceNormal = surfaceNormal;
 }
 
+function GetSurfaceNormal() : Vector3 {
+	return surfaceNormal;
+}
+
 function PlayerCollision(collision : Collision) {
 	flowSpeedup = 1.0;
+}
+
+function SetPlayerObject(playerObject : GameObject) {
+	this.playerObject = playerObject.transform.Find("Ball").gameObject;
 }

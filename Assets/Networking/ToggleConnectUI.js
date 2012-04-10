@@ -1,6 +1,6 @@
 #pragma strict
 
-var connectDialog : ConnectGUI;
+var connectDialog : ConnectUI;
 
 function Update() {
 	if (Input.GetKeyDown("n")){
