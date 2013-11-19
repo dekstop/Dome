@@ -12,7 +12,7 @@ function OnCollisionEnter(collisionInfo : Collision) {
 	}
 	if (collisionInfo.gameObject.tag=="Surface") {
 		playerController.SetSurfaceNormal(AverageNormal(collisionInfo.contacts)); 
-	} else if (collisionInfo.gameObject.tag=="Player") {
+	} else if (collisionInfo.gameObject.tag=="Ball") {
 		playerController.PlayerCollision(collisionInfo);
 	}
 }
