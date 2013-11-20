@@ -19,6 +19,12 @@ var speedCameraDistance : float = 0.1; // Increase in distance over speed
 var minFieldOfView = 45; // Increase in FOV over speed
 var maxFieldOfView = 90;
 
+// camera shake
+var camShakeIntensity = 0.1;
+var camShakeDecay = 0.002;
+private var curCamShakeIntensity : float;
+private var curCamShakeDecay : float;
+
 var playerObject : GameObject;
 var cameraObject : Camera;
 
@@ -36,11 +42,6 @@ function Start() {
 }
 
 function Update () {
-	if (playerObject==null) {
-		return; // Most likely: atm switching between network/local mode.
-	}
-	var velocity : Vector3 = playerObject.GetComponent(Rigidbody).velocity;
-	
 	// Handle application keys
 	if (Input.GetKeyDown(KeyCode.Escape)) {
 		Application.Quit();
@@ -65,6 +66,31 @@ function Update () {
 	playerObject.GetComponent(Rigidbody).AddForce(force);
 	
 	// Update camera
+	CameraUpdate();
+}
+
+function SetSurfaceNormal(surfaceNormal : Vector3) {
+	this.surfaceNormal = surfaceNormal;
+}
+
+function GetSurfaceNormal() : Vector3 {
+	return surfaceNormal;
+}
+
+// Collided with another ball
+function PlayerCollision(collision : Collision) {
+	flowSpeedup = 1.0;
+	Shake(Mathf.Min(1, collision.relativeVelocity.magnitude / 50.0));
+}
+
+// strength: 0..1
+function Shake(strength : float) {
+	curCamShakeIntensity = camShakeIntensity * strength;
+	curCamShakeDecay = camShakeDecay;
+}
+
+function CameraUpdate() {
+	var velocity : Vector3 = playerObject.GetComponent(Rigidbody).velocity;
 	var targetFieldOfView : float = Mathf.Min(maxFieldOfView, 
 		minFieldOfView + velocity.magnitude / 100 * (maxFieldOfView - minFieldOfView));
 	var fieldOfView : float = 
@@ -80,8 +106,17 @@ function Update () {
 		playerObject.transform.position - 
 		targetCameraDistance * velocity.normalized +
 		surfaceNormal * 3;
+	
+	var shakePosition = Vector3.zero;
+	var shakeUpVector = Vector3.zero;
+	if (curCamShakeIntensity >= 0.0001){
+    	shakePosition = Random.insideUnitSphere * curCamShakeIntensity;
+        shakeUpVector = Random.insideUnitSphere * curCamShakeIntensity;
+        curCamShakeIntensity -= curCamShakeDecay;
+    }
 		
 	var cameraPos : Vector3 =
+		shakePosition +
 		Vector3.Lerp(
 			cameraObject.transform.position, 
 			targetCameraPosition, 
@@ -92,6 +127,7 @@ function Update () {
 			playerObject.transform.position,// + surfaceNormal * 5, 
 			Time.deltaTime * 100); // fixed damping
 	var cameraUp : Vector3 =
+		shakeUpVector + 
 		Vector3.Lerp(
 			cameraObject.transform.up, 
 			surfaceNormal, 
@@ -100,20 +136,4 @@ function Update () {
 	cameraObject.fieldOfView = fieldOfView;
 	cameraObject.transform.position = cameraPos;
 	cameraObject.transform.LookAt(cameraTarget, cameraUp);
-}
-
-function SetSurfaceNormal(surfaceNormal : Vector3) {
-	this.surfaceNormal = surfaceNormal;
-}
-
-function GetSurfaceNormal() : Vector3 {
-	return surfaceNormal;
-}
-
-function PlayerCollision(collision : Collision) {
-	flowSpeedup = 1.0;
-}
-
-function SetPlayerObject(playerObject : GameObject) {
-	this.playerObject = playerObject.transform.Find("Ball").gameObject;
 }
